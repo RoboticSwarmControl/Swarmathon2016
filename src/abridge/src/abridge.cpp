@@ -5,6 +5,7 @@
 #include <tf/transform_datatypes.h>
 
 //ROS messages
+#include <std_msgs/Int16.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Twist.h>
@@ -19,6 +20,7 @@ using namespace std;
 
 //aBridge functions
 void cmdHandler(const geometry_msgs::Twist::ConstPtr& message);
+void calibHandler(const std_msgs::Int16::ConstPtr& message);
 void serialActivityTimer(const ros::TimerEvent& e);
 void publishRosTopics();
 void parseData(string data);
@@ -33,6 +35,7 @@ USBSerial usb;
 const int baud = 115200;
 char dataCmd[] = "d\n";
 char moveCmd[16];
+char calibCmd[2];
 char host[128];
 char delimiter = ',';
 vector<string> dataSet;
@@ -49,6 +52,7 @@ ros::Publisher sonarRightPublish;
 
 //Subscribers
 ros::Subscriber velocitySubscriber;
+ros::Subscriber calibSubscribe;
 
 //Timers
 ros::Timer publishTimer;
@@ -84,6 +88,7 @@ int main(int argc, char **argv) {
     sonarRightPublish = aNH.advertise<sensor_msgs::Range>((publishedName + "/sonarRight"), 10);
     
     velocitySubscriber = aNH.subscribe((publishedName + "/velocity"), 10, cmdHandler);
+	calibSubscribe = aNH.subscribe((publishedName + "/calibrate"), 10, calibHandler);
     
     publishTimer = aNH.createTimer(ros::Duration(deltaTime), serialActivityTimer);
     
@@ -95,6 +100,20 @@ int main(int argc, char **argv) {
     ros::spin();
     
     return EXIT_SUCCESS;
+}
+
+// set up calibration topic subscriber and handler, string
+// send a "c" to arduino to denote calibration routine
+// wait 22 seconds
+// done
+
+void calibHandler(const std_msgs::Int16::ConstPtr& message) {
+	if (message->data == 'c') {
+		sprintf(calibCmd, "c\n");
+		usb.sendData(calibCmd);
+	}
+	ros::Duration(22).sleep();
+	ROS_INFO("Mag calib is %s\n",usb.readData().c_str());
 }
 
 void cmdHandler(const geometry_msgs::Twist::ConstPtr& message) {

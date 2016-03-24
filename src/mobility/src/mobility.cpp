@@ -38,6 +38,7 @@ float mobilityLoopTimeStep = 0.1; //time between the mobility loop calls
 float status_publish_interval = 5;
 float killSwitchTimeout = 10;
 std_msgs::Int16 targetDetected; //ID of the detected target
+std_msgs::Int16 calibMsg;
 bool targetsCollected [256] = {0}; //array of booleans indicating whether each target ID has been found
 
 // state machine states
@@ -58,6 +59,7 @@ ros::Publisher status_publisher;
 ros::Publisher targetCollectedPublish;
 ros::Publisher targetPickUpPublish;
 ros::Publisher targetDropOffPublish;
+ros::Publisher calibPublish;
 
 //Subscribers
 ros::Subscriber joySubscriber;
@@ -127,11 +129,21 @@ int main(int argc, char **argv) {
     targetCollectedPublish = mNH.advertise<std_msgs::Int16>(("targetsCollected"), 1, true);
     targetPickUpPublish = mNH.advertise<sensor_msgs::Image>((publishedName + "/targetPickUpImage"), 1, true);
     targetDropOffPublish = mNH.advertise<sensor_msgs::Image>((publishedName + "/targetDropOffImage"), 1, true);
+	calibPublish = mNH.advertise<std_msgs::Int16>((publishedName + "/calibrate"), 1, true);
 
     publish_status_timer = mNH.createTimer(ros::Duration(status_publish_interval), publishStatusTimerEventHandler);
     killSwitchTimer = mNH.createTimer(ros::Duration(killSwitchTimeout), killSwitchTimerEventHandler);
     stateMachineTimer = mNH.createTimer(ros::Duration(mobilityLoopTimeStep), mobilityStateMachine);
-    
+
+	//spin around to calibrate magnet
+	//set velocity to turn around
+	//wait for about 25 seconds
+	//set up a calibration topic for abridge to subscribe to
+	calibMsg.data = 'c';	
+	calibPublish.publish(calibMsg);
+	ros::Duration(25).sleep();
+	//calibration over
+	
     ros::spin();
     
     return EXIT_SUCCESS;
