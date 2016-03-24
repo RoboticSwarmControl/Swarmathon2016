@@ -154,7 +154,7 @@ void mobilityStateMachine(const ros::TimerEvent&) {
 			//set up a calibration topic for abridge to subscribe to
 			calibMsg.data = 'c';	
 			calibPublish.publish(calibMsg);
-			ros::Duration(25).sleep();
+			ros::Duration(7).sleep();
 			//calibration over
 			calibrated = true;
 		}
