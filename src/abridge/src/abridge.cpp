@@ -112,8 +112,8 @@ void calibHandler(const std_msgs::Int16::ConstPtr& message) {
 		sprintf(calibCmd, "c\n");
 		usb.sendData(calibCmd);
 	}
-	ros::Duration(22).sleep();
-	ROS_INFO("Mag calib is %s\n",usb.readData().c_str());
+	//ros::Duration(22).sleep();
+	//ROS_INFO("Mag calib is %s\n",usb.readData().c_str());
 }
 
 void cmdHandler(const geometry_msgs::Twist::ConstPtr& message) {

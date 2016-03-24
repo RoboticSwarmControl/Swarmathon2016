@@ -51,6 +51,7 @@ geometry_msgs::Twist velocity;
 char host[128];
 string publishedName;
 char prev_state_machine[128];
+bool calibrated = false;
 
 //Publishers
 ros::Publisher velocityPublish;
@@ -135,14 +136,6 @@ int main(int argc, char **argv) {
     killSwitchTimer = mNH.createTimer(ros::Duration(killSwitchTimeout), killSwitchTimerEventHandler);
     stateMachineTimer = mNH.createTimer(ros::Duration(mobilityLoopTimeStep), mobilityStateMachine);
 
-	//spin around to calibrate magnet
-	//set velocity to turn around
-	//wait for about 25 seconds
-	//set up a calibration topic for abridge to subscribe to
-	calibMsg.data = 'c';	
-	calibPublish.publish(calibMsg);
-	ros::Duration(25).sleep();
-	//calibration over
 	
     ros::spin();
     
@@ -154,6 +147,17 @@ void mobilityStateMachine(const ros::TimerEvent&) {
     
     if (currentMode == 2 || currentMode == 3) { //Robot is in automode
 
+		if (!calibrated) {	
+			//spin around to calibrate magnet
+			//set velocity to turn around
+			//wait for about 25 seconds
+			//set up a calibration topic for abridge to subscribe to
+			calibMsg.data = 'c';	
+			calibPublish.publish(calibMsg);
+			ros::Duration(25).sleep();
+			//calibration over
+			calibrated = true;
+		}
 		switch(stateMachineState) {
 			
 			//Select rotation or translation based on required adjustment
