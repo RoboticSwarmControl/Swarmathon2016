@@ -1,5 +1,9 @@
 # Swarmathon-ROS
 
+**Note**: The arduino code is now a submodule in the github, please make sure the code on the arduino is updated before running the robots in the competition.
+
+If you want to change the arduino code, fork the [arduino repo](https://github.com/AlpNov/Swarmathon-Arduino) and change the submodule to your repo.
+
 This repository is a ROS (Robot Operating System) controller framework for the Swarmie robots used in the [NASA Swarmathon](http://www.nasaswarmathon.com), a national swarm robotics competition. This particular framework is a ROS implementation of the CPFA (central-place foraging algorithm) developed for [iAnt robot swarms](http://swarms.cs.unm.edu) at the [University of New Mexico](http://www.unm.edu/).
 
 This repository contains:
