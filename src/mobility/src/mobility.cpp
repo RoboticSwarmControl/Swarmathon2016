@@ -38,6 +38,7 @@ float mobilityLoopTimeStep = 0.1; //time between the mobility loop calls
 float status_publish_interval = 5;
 float killSwitchTimeout = 10;
 std_msgs::Int16 targetDetected; //ID of the detected target
+std_msgs::Int16 calibMsg;
 bool targetsCollected [256] = {0}; //array of booleans indicating whether each target ID has been found
 
 // state machine states
@@ -50,6 +51,7 @@ geometry_msgs::Twist velocity;
 char host[128];
 string publishedName;
 char prev_state_machine[128];
+bool calibrated = false;
 
 //Publishers
 ros::Publisher velocityPublish;
@@ -58,6 +60,7 @@ ros::Publisher status_publisher;
 ros::Publisher targetCollectedPublish;
 ros::Publisher targetPickUpPublish;
 ros::Publisher targetDropOffPublish;
+ros::Publisher calibPublish;
 
 //Subscribers
 ros::Subscriber joySubscriber;
@@ -127,11 +130,13 @@ int main(int argc, char **argv) {
     targetCollectedPublish = mNH.advertise<std_msgs::Int16>(("targetsCollected"), 1, true);
     targetPickUpPublish = mNH.advertise<sensor_msgs::Image>((publishedName + "/targetPickUpImage"), 1, true);
     targetDropOffPublish = mNH.advertise<sensor_msgs::Image>((publishedName + "/targetDropOffImage"), 1, true);
+	calibPublish = mNH.advertise<std_msgs::Int16>((publishedName + "/calibrate"), 1, true);
 
     publish_status_timer = mNH.createTimer(ros::Duration(status_publish_interval), publishStatusTimerEventHandler);
     killSwitchTimer = mNH.createTimer(ros::Duration(killSwitchTimeout), killSwitchTimerEventHandler);
     stateMachineTimer = mNH.createTimer(ros::Duration(mobilityLoopTimeStep), mobilityStateMachine);
-    
+
+	
     ros::spin();
     
     return EXIT_SUCCESS;
@@ -142,6 +147,17 @@ void mobilityStateMachine(const ros::TimerEvent&) {
     
     if (currentMode == 2 || currentMode == 3) { //Robot is in automode
 
+		if (!calibrated) {	
+			//spin around to calibrate magnet
+			//set velocity to turn around
+			//wait for about 25 seconds
+			//set up a calibration topic for abridge to subscribe to
+			calibMsg.data = 'c';	
+			calibPublish.publish(calibMsg);
+			ros::Duration(7).sleep();
+			//calibration over
+			calibrated = true;
+		}
 		switch(stateMachineState) {
 			
 			//Select rotation or translation based on required adjustment
